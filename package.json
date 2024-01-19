@@ -1,0 +1,17 @@
+{
+  "name": "Quad Tree Visualization",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/web": "^0.0.116",
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "build": "bun build src/index.ts --outfile dist/bundle.js",
+    "watch": "bun build src/index.ts --outfile dist/bundle.js --watch",
+    "prod": "bun build src/index.ts --outfile dist/bundle.js --minify"
+  }
+}
