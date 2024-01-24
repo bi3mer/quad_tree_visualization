@@ -26,27 +26,21 @@ export class Engine {
     this.ctx = this.canvas.getContext('2d')!;
 
     this.entities = [];
-    for (let i = 0; i < 50; ++i) {
+    for (let i = 0; i < 200; ++i) {
       this.entities.push(new Entity(this.screen));
     }
   }
 
   public start(): void {
     // dt not what we want right now
-    // let oldFrameTime = (new Date()).getTime(); 
-    let dt = 1;
 
-    const loop = (timeStep: number) => {
+    const loop = () => {
       this.ctx.clearRect(0, 0, this.screen.x, this.screen.y);
-
-      // dt = timeStep - oldFrameTime;
-      // oldFrameTime = timeStep;
-
 
       const size = this.entities.length;
       let i = 0;
       for (; i < size; ++i) {
-        this.entities[i].update(dt);
+        this.entities[i].update();
       }
 
       this.ctx.fillStyle = "green";

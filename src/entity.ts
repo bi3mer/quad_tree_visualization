@@ -8,14 +8,29 @@ export class Entity {
 
   constructor(screen: Point) {
     this.screen = screen;
-    this.pos = new Point(screen.x * Math.random(), screen.y * Math.random());
-    this.size = new Point(20 * Math.random(), 20 * Math.random());
-    this.velocity = new Point(Math.random(), Math.random());
+    this.pos = new Point(screen.x * Math.random() * 0.25, screen.y * Math.random() * 0.25);
+    this.size = new Point(5 * Math.random() + 1, 5 * Math.random() + 1);
+    this.velocity = new Point(
+      Math.random() * Math.round(Math.random()) * 2 - 1,
+      Math.random() * Math.round(Math.random()) * 2 - 1
+    );
   }
 
-  update(dt: number) {
-    this.pos.x = (this.pos.x + this.velocity.x * dt) % this.screen.x;
-    this.pos.y = (this.pos.y + this.velocity.y * dt) % this.screen.y;
+  update() {
+    this.pos.x = this.pos.x + this.velocity.x;
+    this.pos.y = this.pos.y + this.velocity.y;
+
+    if (this.pos.x > this.screen.x) {
+      this.pos.x = 0.01;
+    } else if (this.pos.x < 0) {
+      this.pos.x = this.screen.x - 0.01;
+    }
+
+    if (this.pos.y > this.screen.y) {
+      this.pos.y = 0.01;
+    } else if (this.pos.y < 0) {
+      this.pos.y = this.screen.y - 0.01;
+    }
   }
 
   render(ctx: CanvasRenderingContext2D) {
