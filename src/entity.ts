@@ -9,10 +9,11 @@ export class Entity {
   constructor(screen: Point) {
     this.screen = screen;
     this.pos = new Point(screen.x * Math.random() * 0.25, screen.y * Math.random() * 0.25);
-    this.size = new Point(5 * Math.random() + 1, 5 * Math.random() + 1);
+    // this.size = new Point(5 * Math.random() + 1, 5 * Math.random() + 1);
+    this.size = new Point(1, 1);
     this.velocity = new Point(
-      Math.random() * Math.round(Math.random()) * 2 - 1,
-      Math.random() * Math.round(Math.random()) * 2 - 1
+      Math.random() * (Math.round(Math.random()) * 2 - 1),
+      Math.random() * (Math.round(Math.random()) * 2 - 1)
     );
   }
 

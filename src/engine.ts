@@ -6,7 +6,8 @@ import { Point } from "./point";
 // TODO: visualization of quad tree with green lines
 // TODO: quad tree is updated based on movement
 // TODO: on collision, entities temporarily change color
-// TODO: on collision, entities reflect off of eachother and their velocity changesn
+// TODO: on collision, entities reflect off of eachother and their velocity changes
+// TODO: handle different sized entities
 // That shoudl be it
 
 export class Engine {
@@ -26,7 +27,7 @@ export class Engine {
     this.ctx = this.canvas.getContext('2d')!;
 
     this.entities = [];
-    for (let i = 0; i < 200; ++i) {
+    for (let i = 0; i < 50; ++i) {
       this.entities.push(new Entity(this.screen));
     }
   }
