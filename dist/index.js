@@ -42,12 +42,81 @@ class Entity {
   }
 }
 
+// src/quadTree.ts
+class QuadTree {
+  children;
+  occupants;
+  min;
+  max;
+  constructor(min, max) {
+    this.children = null;
+    this.occupants = [];
+    this.min = min;
+    this.max = max;
+  }
+  insert(entity) {
+    if (this.occupants != null) {
+      if (this.occupants.length == 4) {
+        const midX = (this.min.x + this.max.x) / 2;
+        const midY = (this.min.y + this.max.y) / 2;
+        this.children = [
+          new QuadTree(new Point(this.min.x, this.min.y), new Point(midX, midY)),
+          new QuadTree(new Point(midX, this.min.y), new Point(this.max.x, midY)),
+          new QuadTree(new Point(this.min.x, midY), new Point(midX, this.max.y)),
+          new QuadTree(new Point(midX, midY), new Point(this.max.x, this.max.y))
+        ];
+        for (let occupantId = 0;occupantId < 4; ++occupantId) {
+          const e = this.occupants[occupantId];
+          for (let childID = 0;childID < 4; ++childID) {
+            if (this.children[childID].inBounds(e.pos)) {
+              this.children[childID].insert(e);
+              break;
+            }
+          }
+        }
+        this.occupants = null;
+      } else {
+        this.occupants.push(entity);
+      }
+    } else {
+      for (let i = 0;i < 4; ++i) {
+        if (this.children[i].inBounds(entity.pos)) {
+          this.children[i].insert(entity);
+          break;
+        }
+      }
+    }
+  }
+  remove(entity) {
+    console.error("QuadTree.remove not implemented!");
+  }
+  inBounds(pos) {
+    return pos.x >= this.min.x && pos.x <= this.max.x && pos.y >= this.min.y && pos.y <= this.max.y;
+  }
+  render(ctx) {
+    ctx.beginPath();
+    ctx.moveTo(this.min.x, this.min.y);
+    ctx.lineTo(this.max.x, this.min.y);
+    ctx.lineTo(this.max.x, this.max.y);
+    ctx.lineTo(this.min.x, this.max.y);
+    ctx.lineTo(this.min.x, this.min.y);
+    ctx.closePath();
+    ctx.stroke();
+    if (this.children !== null) {
+      for (let i = 0;i < 4; ++i) {
+        this.children[i].render(ctx);
+      }
+    }
+  }
+}
+
 // src/engine.ts
 class Engine {
   screen;
   canvas;
   ctx;
   entities;
+  qTree;
   constructor() {
     this.screen = new Point(720, 480);
     this.canvas = document.createElement("canvas");
@@ -56,9 +125,12 @@ class Engine {
     this.canvas.setAttribute("height", `${this.screen.y}`);
     document.getElementById("canvashere").appendChild(this.canvas);
     this.ctx = this.canvas.getContext("2d");
+    this.qTree = new QuadTree(new Point(0, 0), this.screen);
     this.entities = [];
     for (let i = 0;i < 50; ++i) {
-      this.entities.push(new Entity(this.screen));
+      const e = new Entity(this.screen);
+      this.entities.push(e);
+      this.qTree.insert(e);
     }
   }
   start() {
@@ -73,6 +145,8 @@ class Engine {
       for (i = 0;i < size; ++i) {
         this.entities[i].render(this.ctx);
       }
+      this.ctx.strokeStyle = "blue";
+      this.qTree.render(this.ctx);
       window.requestAnimationFrame(loop);
     };
     window.requestAnimationFrame(loop);

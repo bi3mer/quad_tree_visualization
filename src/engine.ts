@@ -1,8 +1,10 @@
 import { Entity } from "./entity";
 import { Point } from "./point";
+import { QuadTree } from "./quadTree";
 
 // TODO: implement quad tree
 // TODO: place entities into the quad tree
+// TODO: when entities move, they change the tree
 // TODO: visualization of quad tree with green lines
 // TODO: quad tree is updated based on movement
 // TODO: on collision, entities temporarily change color
@@ -15,6 +17,7 @@ export class Engine {
   private canvas: HTMLCanvasElement
   private ctx: CanvasRenderingContext2D
   private entities: Entity[]
+  private qTree: QuadTree
 
   constructor() {
     this.screen = new Point(720, 480);
@@ -25,10 +28,13 @@ export class Engine {
 
     document.getElementById('canvashere')!.appendChild(this.canvas);
     this.ctx = this.canvas.getContext('2d')!;
+    this.qTree = new QuadTree(new Point(0, 0), this.screen);
 
     this.entities = [];
     for (let i = 0; i < 50; ++i) {
-      this.entities.push(new Entity(this.screen));
+      const e = new Entity(this.screen);
+      this.entities.push(e);
+      this.qTree.insert(e);
     }
   }
 
@@ -48,6 +54,10 @@ export class Engine {
       for (i = 0; i < size; ++i) {
         this.entities[i].render(this.ctx);
       }
+
+      this.ctx.strokeStyle = "blue";
+      // this.ctx.lineWidth = 0.5;
+      this.qTree.render(this.ctx);
 
       window.requestAnimationFrame(loop);
     }

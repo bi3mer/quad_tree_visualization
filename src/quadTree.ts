@@ -46,6 +46,7 @@ export class QuadTree {
       for (let i = 0; i < 4; ++i) {
         if (this.children![i].inBounds(entity.pos)) {
           this.children![i].insert(entity);
+          break;
         }
       }
     }
@@ -58,5 +59,22 @@ export class QuadTree {
   // ERROR: size of the entity is not used
   private inBounds(pos: Point): boolean {
     return pos.x >= this.min.x && pos.x <= this.max.x && pos.y >= this.min.y && pos.y <= this.max.y;
+  }
+
+  public render(ctx: CanvasRenderingContext2D) {
+    ctx.beginPath(); // rect was super slow for some reason
+    ctx.moveTo(this.min.x, this.min.y);
+    ctx.lineTo(this.max.x, this.min.y);
+    ctx.lineTo(this.max.x, this.max.y);
+    ctx.lineTo(this.min.x, this.max.y);
+    ctx.lineTo(this.min.x, this.min.y);
+    ctx.closePath();
+    ctx.stroke();
+
+    if (this.children !== null) {
+      for (let i = 0; i < 4; ++i) {
+        this.children[i].render(ctx);
+      }
+    }
   }
 }
