@@ -50,6 +50,8 @@ export class Engine {
         this.entities[i].update();
       }
 
+      this.qTree.update();
+
       this.ctx.fillStyle = "green";
       for (i = 0; i < size; ++i) {
         this.entities[i].render(this.ctx);

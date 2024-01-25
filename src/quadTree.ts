@@ -52,8 +52,36 @@ export class QuadTree {
     }
   }
 
-  public remove(entity: Entity) {
-    console.error('QuadTree.remove not implemented!');
+  public update() {
+    // each update call should return a list of entities and then try to insert. If Insert fails,
+    // it returns that entity and any other entity up the list. So we can heavily traversing the
+    // tree each time. Also, start with the stupid version then implement the smarter one I just
+    // described.
+    const entities = this.__update();
+    const size = entities.length;
+    for (let i = 0; i < size; ++i) {
+      this.insert(entities[i]);
+    }
+  }
+
+  private __update(): Entity[] {
+    let outOfBoundEntitites: Entity[] = [];
+    // need to handle destruction of tree if no longer has occupants
+    if (this.children === null) {
+      for (let i = 0; i < this.occupants!.length; ++i) {
+        const e = this.occupants![i];
+        if (!this.inBounds(e.pos)) {
+          outOfBoundEntitites.push(e);
+          this.occupants!.splice(i);
+          --i;
+        }
+      }
+    } else {
+      for (let i = 0; i < 4; ++i) {
+        outOfBoundEntitites = outOfBoundEntitites.concat(this.children![i].__update());
+      }
+    }
+    return outOfBoundEntitites;
   }
 
   // ERROR: size of the entity is not used

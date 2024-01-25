@@ -87,8 +87,30 @@ class QuadTree {
       }
     }
   }
-  remove(entity) {
-    console.error("QuadTree.remove not implemented!");
+  update() {
+    const entities = this.__update();
+    const size = entities.length;
+    for (let i = 0;i < size; ++i) {
+      this.insert(entities[i]);
+    }
+  }
+  __update() {
+    let outOfBoundEntitites = [];
+    if (this.children === null) {
+      for (let i = 0;i < this.occupants.length; ++i) {
+        const e = this.occupants[i];
+        if (!this.inBounds(e.pos)) {
+          outOfBoundEntitites.push(e);
+          this.occupants.splice(i);
+          --i;
+        }
+      }
+    } else {
+      for (let i = 0;i < 4; ++i) {
+        outOfBoundEntitites = outOfBoundEntitites.concat(this.children[i].__update());
+      }
+    }
+    return outOfBoundEntitites;
   }
   inBounds(pos) {
     return pos.x >= this.min.x && pos.x <= this.max.x && pos.y >= this.min.y && pos.y <= this.max.y;
@@ -141,6 +163,7 @@ class Engine {
       for (;i < size; ++i) {
         this.entities[i].update();
       }
+      this.qTree.update();
       this.ctx.fillStyle = "green";
       for (i = 0;i < size; ++i) {
         this.entities[i].render(this.ctx);
