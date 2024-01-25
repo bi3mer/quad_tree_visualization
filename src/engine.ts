@@ -28,10 +28,14 @@ export class Engine {
 
     document.getElementById('canvashere')!.appendChild(this.canvas);
     this.ctx = this.canvas.getContext('2d')!;
+    this.ctx.fillStyle = "green";
+    this.ctx.lineWidth = 0.2;
+    this.ctx.strokeStyle = "white";
+
     this.qTree = new QuadTree(new Point(0, 0), this.screen);
 
     this.entities = [];
-    for (let i = 0; i < 50; ++i) {
+    for (let i = 0; i < 20; ++i) {
       const e = new Entity(this.screen);
       this.entities.push(e);
       this.qTree.insert(e);
@@ -39,30 +43,29 @@ export class Engine {
   }
 
   public start(): void {
-    // dt not what we want right now
-
     const loop = () => {
       this.ctx.clearRect(0, 0, this.screen.x, this.screen.y);
 
       const size = this.entities.length;
       let i = 0;
+      let qTree = new QuadTree(new Point(0, 0), this.screen);
       for (; i < size; ++i) {
         this.entities[i].update();
+        qTree.insert(this.entities[i]);
       }
 
-      this.qTree.update();
+      // this.qTree.update();
 
-      this.ctx.fillStyle = "green";
       for (i = 0; i < size; ++i) {
         this.entities[i].render(this.ctx);
       }
 
-      this.ctx.strokeStyle = "blue";
-      // this.ctx.lineWidth = 0.5;
-      this.qTree.render(this.ctx);
+      qTree.render(this.ctx);
+      // this.qTree.render(this.ctx);
 
       window.requestAnimationFrame(loop);
     }
+
     window.requestAnimationFrame(loop);
   }
 }

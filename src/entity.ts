@@ -8,9 +8,10 @@ export class Entity {
 
   constructor(screen: Point) {
     this.screen = screen;
+    // this.pos = new Point(screen.x * Math.random(), screen.y * Math.random());
     this.pos = new Point(screen.x * Math.random() * 0.25, screen.y * Math.random() * 0.25);
     // this.size = new Point(5 * Math.random() + 1, 5 * Math.random() + 1);
-    this.size = new Point(1, 1);
+    this.size = new Point(2, 2);
     this.velocity = new Point(
       Math.random() * (Math.round(Math.random()) * 2 - 1),
       Math.random() * (Math.round(Math.random()) * 2 - 1)
@@ -18,19 +19,20 @@ export class Entity {
   }
 
   update() {
-    this.pos.x = this.pos.x + this.velocity.x;
-    this.pos.y = this.pos.y + this.velocity.y;
-
-    if (this.pos.x > this.screen.x) {
-      this.pos.x = 0.01;
-    } else if (this.pos.x < 0) {
-      this.pos.x = this.screen.x - 0.01;
+    const newX = this.pos.x + this.velocity.x;
+    if (newX < this.size.x || this.pos.x > this.screen.x - this.size.x) {
+      this.velocity.x = -this.velocity.x;
+      this.pos.x += this.velocity.x;
+    } else {
+      this.pos.x = newX;
     }
 
-    if (this.pos.y > this.screen.y) {
-      this.pos.y = 0.01;
-    } else if (this.pos.y < 0) {
-      this.pos.y = this.screen.y - 0.01;
+    const newY = this.pos.y + this.velocity.y;
+    if (newY < this.size.y || this.pos.y > this.screen.y - this.size.y) {
+      this.velocity.y = -this.velocity.y;
+      this.pos.y += this.velocity.y;
+    } else {
+      this.pos.y = newY;
     }
   }
 

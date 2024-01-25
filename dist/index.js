@@ -20,21 +20,23 @@ class Entity {
   constructor(screen) {
     this.screen = screen;
     this.pos = new Point(screen.x * Math.random() * 0.25, screen.y * Math.random() * 0.25);
-    this.size = new Point(1, 1);
+    this.size = new Point(2, 2);
     this.velocity = new Point(Math.random() * (Math.round(Math.random()) * 2 - 1), Math.random() * (Math.round(Math.random()) * 2 - 1));
   }
   update() {
-    this.pos.x = this.pos.x + this.velocity.x;
-    this.pos.y = this.pos.y + this.velocity.y;
-    if (this.pos.x > this.screen.x) {
-      this.pos.x = 0.01;
-    } else if (this.pos.x < 0) {
-      this.pos.x = this.screen.x - 0.01;
+    const newX = this.pos.x + this.velocity.x;
+    if (newX < this.size.x || this.pos.x > this.screen.x - this.size.x) {
+      this.velocity.x = -this.velocity.x;
+      this.pos.x += this.velocity.x;
+    } else {
+      this.pos.x = newX;
     }
-    if (this.pos.y > this.screen.y) {
-      this.pos.y = 0.01;
-    } else if (this.pos.y < 0) {
-      this.pos.y = this.screen.y - 0.01;
+    const newY = this.pos.y + this.velocity.y;
+    if (newY < this.size.y || this.pos.y > this.screen.y - this.size.y) {
+      this.velocity.y = -this.velocity.y;
+      this.pos.y += this.velocity.y;
+    } else {
+      this.pos.y = newY;
     }
   }
   render(ctx) {
@@ -105,9 +107,25 @@ class QuadTree {
           --i;
         }
       }
-    } else {
-      for (let i = 0;i < 4; ++i) {
-        outOfBoundEntitites = outOfBoundEntitites.concat(this.children[i].__update());
+      return outOfBoundEntitites;
+    }
+    for (let i = 0;i < 4; ++i) {
+      let inBounds = this.children[i].__update();
+      for (let jj = 0;jj < inBounds.length; ++jj) {
+        if (!this.inBounds(inBounds[jj].pos)) {
+          outOfBoundEntitites.push(inBounds[jj]);
+          inBounds.splice(jj);
+          --jj;
+        }
+      }
+    }
+    let leafs = 0;
+    for (let i = 0;i < 4; ++i) {
+      if (this.children[i].children !== null) {
+        leafs = 5;
+        break;
+      } else {
+        leafs += this.children[i].occupants.length;
       }
     }
     return outOfBoundEntitites;
@@ -147,9 +165,12 @@ class Engine {
     this.canvas.setAttribute("height", `${this.screen.y}`);
     document.getElementById("canvashere").appendChild(this.canvas);
     this.ctx = this.canvas.getContext("2d");
+    this.ctx.fillStyle = "green";
+    this.ctx.lineWidth = 0.2;
+    this.ctx.strokeStyle = "white";
     this.qTree = new QuadTree(new Point(0, 0), this.screen);
     this.entities = [];
-    for (let i = 0;i < 50; ++i) {
+    for (let i = 0;i < 20; ++i) {
       const e = new Entity(this.screen);
       this.entities.push(e);
       this.qTree.insert(e);
@@ -160,16 +181,15 @@ class Engine {
       this.ctx.clearRect(0, 0, this.screen.x, this.screen.y);
       const size = this.entities.length;
       let i = 0;
+      let qTree = new QuadTree(new Point(0, 0), this.screen);
       for (;i < size; ++i) {
         this.entities[i].update();
+        qTree.insert(this.entities[i]);
       }
-      this.qTree.update();
-      this.ctx.fillStyle = "green";
       for (i = 0;i < size; ++i) {
         this.entities[i].render(this.ctx);
       }
-      this.ctx.strokeStyle = "blue";
-      this.qTree.render(this.ctx);
+      qTree.render(this.ctx);
       window.requestAnimationFrame(loop);
     };
     window.requestAnimationFrame(loop);

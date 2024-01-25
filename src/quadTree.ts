@@ -66,7 +66,7 @@ export class QuadTree {
 
   private __update(): Entity[] {
     let outOfBoundEntitites: Entity[] = [];
-    // need to handle destruction of tree if no longer has occupants
+
     if (this.children === null) {
       for (let i = 0; i < this.occupants!.length; ++i) {
         const e = this.occupants![i];
@@ -76,11 +76,39 @@ export class QuadTree {
           --i;
         }
       }
-    } else {
-      for (let i = 0; i < 4; ++i) {
-        outOfBoundEntitites = outOfBoundEntitites.concat(this.children![i].__update());
+
+      return outOfBoundEntitites;
+    }
+
+    for (let i = 0; i < 4; ++i) {
+      let inBounds = this.children![i].__update(); // recurse down the QuadTree
+
+      for (let jj = 0; jj < inBounds.length; ++jj) {
+        if (!this.inBounds(inBounds[jj].pos)) {
+          outOfBoundEntitites.push(inBounds[jj]);
+
+          inBounds.splice(jj);
+          --jj;
+        }
       }
     }
+
+    // check length of children. If less than or equal to 4, delete them and just
+    // use this instead
+    let leafs = 0;
+    for (let i = 0; i < 4; ++i) {
+      if (this.children![i].children !== null) {
+        leafs = 5;
+        break;
+      } else {
+        leafs += this.children![i].occupants!.length;
+      }
+    }
+
+    // if (leafs >) {
+    //
+    // }
+
     return outOfBoundEntitites;
   }
 
