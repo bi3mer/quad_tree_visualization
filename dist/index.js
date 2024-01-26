@@ -25,11 +25,13 @@ class Entity {
   pos;
   velocity;
   color;
-  constructor(screen) {
+  friction;
+  constructor(screen, friction = 0.998) {
     this.screen = screen;
     this.mass = Math.random() * 3 + 1;
     this.pos = new Point(screen.x * 0.375 + screen.x * Math.random() * 0.25, screen.y * 0.375 + screen.y * Math.random() * 0.25);
     this.velocity = new Point(0, 0);
+    this.friction = friction;
     this.color = "green";
   }
   update() {
@@ -47,7 +49,7 @@ class Entity {
     } else {
       this.pos.y = newY;
     }
-    this.velocity.scalarMultiply(0.998);
+    this.velocity.scalarMultiply(this.friction);
   }
   collision(other) {
     const diff = new Point(other.pos.x - this.pos.x, other.pos.y - this.pos.y);
@@ -102,7 +104,7 @@ class QuadTree {
         for (let occupantId = 0;occupantId < 4; ++occupantId) {
           const e = this.occupants[occupantId];
           for (let childID = 0;childID < 4; ++childID) {
-            if (this.children[childID].inBounds(e.pos)) {
+            if (this.children[childID].inBounds(e)) {
               this.children[childID].insert(e);
             }
           }
@@ -113,9 +115,8 @@ class QuadTree {
       }
     } else {
       for (let i = 0;i < 4; ++i) {
-        if (this.children[i].inBounds(entity.pos)) {
+        if (this.children[i].inBounds(entity)) {
           this.children[i].insert(entity);
-          break;
         }
       }
     }
@@ -135,8 +136,12 @@ class QuadTree {
       }
     }
   }
-  inBounds(pos) {
-    return pos.x >= this.min.x && pos.x <= this.max.x && pos.y >= this.min.y && pos.y <= this.max.y;
+  inBounds(entity) {
+    const xn = Math.max(this.min.x, Math.min(entity.pos.x, this.max.x));
+    const yn = Math.max(this.min.y, Math.min(entity.pos.y, this.max.y));
+    const dx = xn - entity.pos.x;
+    const dy = yn - entity.pos.y;
+    return Math.pow(dx, 2) + Math.pow(dy, 2) <= Math.pow(entity.mass, 2);
   }
   render(ctx) {
     ctx.beginPath();
@@ -175,15 +180,15 @@ class Engine {
     this.ctx.strokeStyle = "white";
     this.qTree = new QuadTree(new Point(0, 0), this.screen);
     this.entities = [];
-    for (let i = 0;i < 100; ++i) {
+    for (let i = 0;i < 10; ++i) {
       const e2 = new Entity(this.screen);
       this.entities.push(e2);
       this.qTree.insert(e2);
     }
-    const e = new Entity(this.screen);
-    e.mass = 10;
+    const e = new Entity(this.screen, 1);
+    e.mass = 30;
     e.pos = new Point(e.mass, this.screen.y / 2);
-    e.velocity = new Point(10, 0);
+    e.velocity = new Point(10, -0.01);
     this.entities.push(e);
     this.qTree.insert(e);
   }

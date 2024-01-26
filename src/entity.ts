@@ -6,8 +6,9 @@ export class Entity {
   pos: Point
   velocity: Point
   color: string
+  friction: number
 
-  constructor(screen: Point) {
+  constructor(screen: Point, friction = 0.998) {
     this.screen = screen;
 
     this.mass = Math.random() * 3 + 1;
@@ -18,7 +19,7 @@ export class Entity {
     );
 
     this.velocity = new Point(0, 0);
-
+    this.friction = friction;
     this.color = 'green';
   }
 
@@ -40,7 +41,7 @@ export class Entity {
     }
 
     // friction
-    this.velocity.scalarMultiply(0.998);
+    this.velocity.scalarMultiply(this.friction);
   }
 
   collision(other: Entity): void {

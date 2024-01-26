@@ -1,3 +1,4 @@
+import { EndOfLineState } from "typescript";
 import { Entity } from "./entity";
 import { Point } from "./point";
 
@@ -31,7 +32,7 @@ export class QuadTree {
         for (let occupantId = 0; occupantId < 4; ++occupantId) {
           const e = this.occupants[occupantId];
           for (let childID = 0; childID < 4; ++childID) {
-            if (this.children[childID].inBounds(e.pos)) {
+            if (this.children[childID].inBounds(e)) {
               this.children[childID].insert(e);
             }
           }
@@ -43,9 +44,8 @@ export class QuadTree {
       }
     } else {
       for (let i = 0; i < 4; ++i) {
-        if (this.children![i].inBounds(entity.pos)) {
+        if (this.children![i].inBounds(entity)) {
           this.children![i].insert(entity);
-          break;
         }
       }
     }
@@ -69,10 +69,14 @@ export class QuadTree {
     }
   }
 
+  private inBounds(entity: Entity): boolean {
+    const xn = Math.max(this.min.x, Math.min(entity.pos.x, this.max.x));
+    const yn = Math.max(this.min.y, Math.min(entity.pos.y, this.max.y));
 
-  // ERROR: size of the entity is not used
-  private inBounds(pos: Point): boolean {
-    return pos.x >= this.min.x && pos.x <= this.max.x && pos.y >= this.min.y && pos.y <= this.max.y;
+    const dx = xn - entity.pos.x;
+    const dy = yn - entity.pos.y;
+
+    return (Math.pow(dx, 2) + Math.pow(dy, 2)) <= Math.pow(entity.mass, 2);
   }
 
   public render(ctx: CanvasRenderingContext2D) {
@@ -92,66 +96,3 @@ export class QuadTree {
     }
   }
 }
-
-/** For when I make a smarter version so that the tree isn't deleted and remade every frame
-  public update(): void {
-    // each update call should return a list of entities and then try to insert. If Insert fails,
-    // it returns that entity and any other entity up the list. So we can heavily traversing the
-    // tree each time. Also, start with the stupid version then implement the smarter one I just
-    // described.
-    const entities = this.__update();
-    const size = entities.length;
-    for (let i = 0; i < size; ++i) {
-      this.insert(entities[i]);
-    }
-  }
-
-
-  private __update(): Entity[] {
-    let outOfBoundEntitites: Entity[] = [];
-
-    if (this.children === null) {
-      for (let i = 0; i < this.occupants!.length; ++i) {
-        const e = this.occupants![i];
-        if (!this.inBounds(e.pos)) {
-          outOfBoundEntitites.push(e);
-          this.occupants!.splice(i);
-          --i;
-        }
-      }
-
-      return outOfBoundEntitites;
-    }
-
-    for (let i = 0; i < 4; ++i) {
-      let inBounds = this.children![i].__update(); // recurse down the QuadTree
-
-      for (let jj = 0; jj < inBounds.length; ++jj) {
-        if (!this.inBounds(inBounds[jj].pos)) {
-          outOfBoundEntitites.push(inBounds[jj]);
-
-          inBounds.splice(jj);
-          --jj;
-        }
-      }
-    }
-
-    // check length of children. If less than or equal to 4, delete them and just
-    // use this instead
-    let leafs = 0;
-    for (let i = 0; i < 4; ++i) {
-      if (this.children![i].children !== null) {
-        leafs = 5;
-        break;
-      } else {
-        leafs += this.children![i].occupants!.length;
-      }
-    }
-
-    // if (leafs >) {
-    //
-    // }
-
-    return outOfBoundEntitites;
-  }
- */

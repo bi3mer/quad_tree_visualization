@@ -2,16 +2,6 @@ import { Entity } from "./entity";
 import { Point } from "./point";
 import { QuadTree } from "./quadTree";
 
-// TODO: implement quad tree
-// TODO: place entities into the quad tree
-// TODO: when entities move, they change the tree
-// TODO: visualization of quad tree with green lines
-// TODO: quad tree is updated based on movement
-// TODO: on collision, entities temporarily change color
-// TODO: on collision, entities reflect off of eachother and their velocity changes
-// TODO: handle different sized entities
-// That shoudl be it
-
 export class Engine {
   private screen: Point
   private canvas: HTMLCanvasElement
@@ -35,16 +25,16 @@ export class Engine {
     this.qTree = new QuadTree(new Point(0, 0), this.screen);
 
     this.entities = [];
-    for (let i = 0; i < 100; ++i) {
+    for (let i = 0; i < 10; ++i) {
       const e = new Entity(this.screen);
       this.entities.push(e);
       this.qTree.insert(e);
     }
 
-    const e = new Entity(this.screen);
-    e.mass = 10;
+    const e = new Entity(this.screen, 1);
+    e.mass = 30;
     e.pos = new Point(e.mass, this.screen.y / 2);
-    e.velocity = new Point(10, 0);
+    e.velocity = new Point(10, -0.01);
 
     this.entities.push(e);
     this.qTree.insert(e);
