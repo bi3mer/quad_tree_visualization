@@ -35,11 +35,19 @@ export class Engine {
     this.qTree = new QuadTree(new Point(0, 0), this.screen);
 
     this.entities = [];
-    for (let i = 0; i < 20; ++i) {
+    for (let i = 0; i < 100; ++i) {
       const e = new Entity(this.screen);
       this.entities.push(e);
       this.qTree.insert(e);
     }
+
+    const e = new Entity(this.screen);
+    e.mass = 10;
+    e.pos = new Point(e.mass, this.screen.y / 2);
+    e.velocity = new Point(10, 0);
+
+    this.entities.push(e);
+    this.qTree.insert(e);
   }
 
   public start(): void {
@@ -55,6 +63,8 @@ export class Engine {
       }
 
       // this.qTree.update();
+      qTree.physicsUpdate();
+      // this.entities[0].collision(this.entities[1]);
 
       for (i = 0; i < size; ++i) {
         this.entities[i].render(this.ctx);

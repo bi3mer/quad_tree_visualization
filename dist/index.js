@@ -9,38 +9,70 @@ class Point {
   equals(other) {
     return this.x == other.x && this.y == other.y;
   }
+  add(other) {
+    return new Point(this.x + other.x, this.y + other.y);
+  }
+  scalarMultiply(scalar) {
+    this.x *= scalar;
+    this.y *= scalar;
+  }
 }
 
 // src/entity.ts
 class Entity {
+  mass;
   screen;
   pos;
-  size;
   velocity;
+  color;
   constructor(screen) {
     this.screen = screen;
-    this.pos = new Point(screen.x * Math.random() * 0.25, screen.y * Math.random() * 0.25);
-    this.size = new Point(2, 2);
-    this.velocity = new Point(Math.random() * (Math.round(Math.random()) * 2 - 1), Math.random() * (Math.round(Math.random()) * 2 - 1));
+    this.mass = Math.random() * 3 + 1;
+    this.pos = new Point(screen.x * 0.375 + screen.x * Math.random() * 0.25, screen.y * 0.375 + screen.y * Math.random() * 0.25);
+    this.velocity = new Point(0, 0);
+    this.color = "green";
   }
   update() {
     const newX = this.pos.x + this.velocity.x;
-    if (newX < this.size.x || this.pos.x > this.screen.x - this.size.x) {
+    if (newX < this.mass || this.pos.x > this.screen.x - this.mass) {
       this.velocity.x = -this.velocity.x;
       this.pos.x += this.velocity.x;
     } else {
       this.pos.x = newX;
     }
     const newY = this.pos.y + this.velocity.y;
-    if (newY < this.size.y || this.pos.y > this.screen.y - this.size.y) {
+    if (newY < this.mass || this.pos.y > this.screen.y - this.mass) {
       this.velocity.y = -this.velocity.y;
       this.pos.y += this.velocity.y;
     } else {
       this.pos.y = newY;
     }
+    this.velocity.scalarMultiply(0.998);
+  }
+  collision(other) {
+    const diff = new Point(other.pos.x - this.pos.x, other.pos.y - this.pos.y);
+    const dist = Math.hypot(diff.x, diff.y);
+    if (dist <= this.mass + other.mass) {
+      this.color = "red";
+      other.color = "red";
+      const norm = new Point(diff.x / dist, diff.y / dist);
+      const diffV = new Point(this.velocity.x - other.velocity.x, this.velocity.y - other.velocity.y);
+      const speed = diffV.x * norm.x + diffV.y * norm.y;
+      if (speed < 0) {
+        return;
+      }
+      const J = 2 * speed / (this.mass + other.mass);
+      this.velocity.x -= J * other.mass * norm.x;
+      this.velocity.y -= J * other.mass * norm.y;
+      other.velocity.x += J * this.mass * norm.x;
+      other.velocity.x += J * this.mass * norm.y;
+    }
   }
   render(ctx) {
-    ctx.fillRect(this.pos.x, this.pos.y, this.size.x, this.size.y);
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.pos.x, this.pos.y, this.mass, 0, Math.PI * 2);
+    ctx.fill();
   }
 }
 
@@ -72,7 +104,6 @@ class QuadTree {
           for (let childID = 0;childID < 4; ++childID) {
             if (this.children[childID].inBounds(e.pos)) {
               this.children[childID].insert(e);
-              break;
             }
           }
         }
@@ -89,46 +120,20 @@ class QuadTree {
       }
     }
   }
-  update() {
-    const entities = this.__update();
-    const size = entities.length;
+  physicsUpdate() {
+    if (this.occupants === null) {
+      for (let i = 0;i < 4; ++i) {
+        this.children[i].physicsUpdate();
+      }
+      return;
+    }
+    const size = this.occupants.length;
     for (let i = 0;i < size; ++i) {
-      this.insert(entities[i]);
-    }
-  }
-  __update() {
-    let outOfBoundEntitites = [];
-    if (this.children === null) {
-      for (let i = 0;i < this.occupants.length; ++i) {
-        const e = this.occupants[i];
-        if (!this.inBounds(e.pos)) {
-          outOfBoundEntitites.push(e);
-          this.occupants.splice(i);
-          --i;
-        }
-      }
-      return outOfBoundEntitites;
-    }
-    for (let i = 0;i < 4; ++i) {
-      let inBounds = this.children[i].__update();
-      for (let jj = 0;jj < inBounds.length; ++jj) {
-        if (!this.inBounds(inBounds[jj].pos)) {
-          outOfBoundEntitites.push(inBounds[jj]);
-          inBounds.splice(jj);
-          --jj;
-        }
+      const e = this.occupants[i];
+      for (let jj = i + 1;jj < size; ++jj) {
+        e.collision(this.occupants[jj]);
       }
     }
-    let leafs = 0;
-    for (let i = 0;i < 4; ++i) {
-      if (this.children[i].children !== null) {
-        leafs = 5;
-        break;
-      } else {
-        leafs += this.children[i].occupants.length;
-      }
-    }
-    return outOfBoundEntitites;
   }
   inBounds(pos) {
     return pos.x >= this.min.x && pos.x <= this.max.x && pos.y >= this.min.y && pos.y <= this.max.y;
@@ -170,11 +175,17 @@ class Engine {
     this.ctx.strokeStyle = "white";
     this.qTree = new QuadTree(new Point(0, 0), this.screen);
     this.entities = [];
-    for (let i = 0;i < 20; ++i) {
-      const e = new Entity(this.screen);
-      this.entities.push(e);
-      this.qTree.insert(e);
+    for (let i = 0;i < 100; ++i) {
+      const e2 = new Entity(this.screen);
+      this.entities.push(e2);
+      this.qTree.insert(e2);
     }
+    const e = new Entity(this.screen);
+    e.mass = 10;
+    e.pos = new Point(e.mass, this.screen.y / 2);
+    e.velocity = new Point(10, 0);
+    this.entities.push(e);
+    this.qTree.insert(e);
   }
   start() {
     const loop = () => {
@@ -186,6 +197,7 @@ class Engine {
         this.entities[i].update();
         qTree.insert(this.entities[i]);
       }
+      qTree.physicsUpdate();
       for (i = 0;i < size; ++i) {
         this.entities[i].render(this.ctx);
       }

@@ -10,4 +10,13 @@ export class Point {
   equals(other: Point): boolean {
     return this.x == other.x && this.y == other.y;
   }
+
+  add(other: Point): Point {
+    return new Point(this.x + other.x, this.y + other.y);
+  }
+
+  scalarMultiply(scalar: number): void {
+    this.x *= scalar;
+    this.y *= scalar;
+  }
 }

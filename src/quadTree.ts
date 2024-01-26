@@ -33,7 +33,6 @@ export class QuadTree {
           for (let childID = 0; childID < 4; ++childID) {
             if (this.children[childID].inBounds(e.pos)) {
               this.children[childID].insert(e);
-              break;
             }
           }
         }
@@ -52,7 +51,50 @@ export class QuadTree {
     }
   }
 
-  public update() {
+  public physicsUpdate(): void {
+    if (this.occupants === null) {
+      for (let i = 0; i < 4; ++i) {
+        this.children![i].physicsUpdate();
+      }
+
+      return;
+    }
+
+    const size = this.occupants!.length;
+    for (let i = 0; i < size; ++i) {
+      const e = this.occupants![i];
+      for (let jj = i + 1; jj < size; ++jj) {
+        e.collision(this.occupants![jj]);
+      }
+    }
+  }
+
+
+  // ERROR: size of the entity is not used
+  private inBounds(pos: Point): boolean {
+    return pos.x >= this.min.x && pos.x <= this.max.x && pos.y >= this.min.y && pos.y <= this.max.y;
+  }
+
+  public render(ctx: CanvasRenderingContext2D) {
+    ctx.beginPath(); // rect was super slow for some reason
+    ctx.moveTo(this.min.x, this.min.y);
+    ctx.lineTo(this.max.x, this.min.y);
+    ctx.lineTo(this.max.x, this.max.y);
+    ctx.lineTo(this.min.x, this.max.y);
+    ctx.lineTo(this.min.x, this.min.y);
+    ctx.closePath();
+    ctx.stroke();
+
+    if (this.children !== null) {
+      for (let i = 0; i < 4; ++i) {
+        this.children[i].render(ctx);
+      }
+    }
+  }
+}
+
+/** For when I make a smarter version so that the tree isn't deleted and remade every frame
+  public update(): void {
     // each update call should return a list of entities and then try to insert. If Insert fails,
     // it returns that entity and any other entity up the list. So we can heavily traversing the
     // tree each time. Also, start with the stupid version then implement the smarter one I just
@@ -63,6 +105,7 @@ export class QuadTree {
       this.insert(entities[i]);
     }
   }
+
 
   private __update(): Entity[] {
     let outOfBoundEntitites: Entity[] = [];
@@ -111,26 +154,4 @@ export class QuadTree {
 
     return outOfBoundEntitites;
   }
-
-  // ERROR: size of the entity is not used
-  private inBounds(pos: Point): boolean {
-    return pos.x >= this.min.x && pos.x <= this.max.x && pos.y >= this.min.y && pos.y <= this.max.y;
-  }
-
-  public render(ctx: CanvasRenderingContext2D) {
-    ctx.beginPath(); // rect was super slow for some reason
-    ctx.moveTo(this.min.x, this.min.y);
-    ctx.lineTo(this.max.x, this.min.y);
-    ctx.lineTo(this.max.x, this.max.y);
-    ctx.lineTo(this.min.x, this.max.y);
-    ctx.lineTo(this.min.x, this.min.y);
-    ctx.closePath();
-    ctx.stroke();
-
-    if (this.children !== null) {
-      for (let i = 0; i < 4; ++i) {
-        this.children[i].render(ctx);
-      }
-    }
-  }
-}
+ */
