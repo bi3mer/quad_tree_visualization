@@ -49,6 +49,7 @@ export class QuadTree {
       }
 
       this.occupants = null;
+      this.insert(entity);
       return;
     }
 
