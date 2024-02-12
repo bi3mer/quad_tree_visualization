@@ -1,6 +1,7 @@
 import { EndOfLineState } from "typescript";
 import { Entity } from "./entity";
 import { Point } from "./point";
+import { clamp } from "./util";
 
 const MAX_DETPH = 5;
 
@@ -22,6 +23,16 @@ export class QuadTree {
   }
 
   private addToSubTrees(entity: Entity) {
+    let inBounds = false;
+    for (let i = 0; i < 4; ++i) {
+      inBounds ||= this.subTrees![i].inBounds(entity);
+    }
+    if (!inBounds && this.depth >= 1) {
+      console.log('oh no');
+      for (let i = 0; i < 4; ++i) {
+        inBounds ||= this.subTrees![i].inBounds(entity);
+      }
+    }
     this.subTrees![0].insert(entity); // sue me!
     this.subTrees![1].insert(entity);
     this.subTrees![2].insert(entity);
@@ -88,26 +99,12 @@ export class QuadTree {
   }
 
   private inBounds(entity: Entity): boolean {
-    // const cx = entity.pos.x;
-    // const cy = entity.pos.y;
-    let cx = entity.pos.x;
-    let cy = entity.pos.y;
+    const cx = entity.pos.x;
+    const cy = entity.pos.y;
     const r = entity.mass;
 
-    if (cx < this.min.x) {
-      cx = this.min.x;
-    } else if (cx > this.max.x) {
-      cx = this.max.x;
-    }
-
-    if (cy < this.min.y) {
-      cy = this.min.y;
-    } else if (cy > this.max.x) {
-      cy = this.max.y;
-    }
-
-    const dx = cx - entity.pos.x;
-    const dy = cy - entity.pos.y;
+    const dx = cx - clamp(cx, this.min.x, this.max.x);
+    const dy = cy - clamp(cy, this.min.y, this.max.y);
 
     return dx * dx + dy * dy <= r * r;
   }
