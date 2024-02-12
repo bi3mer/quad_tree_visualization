@@ -25,39 +25,78 @@ export class Engine {
     this.qTree = new QuadTree(new Point(0, 0), this.screen);
 
     this.entities = [];
-    for (let i = 0; i < 10; ++i) {
+    // for (let i = 0; i < 100; ++i) {
+    //   const e = new Entity(this.screen);
+    //   this.entities.push(e);
+    //   // this.qTree.insert(e);
+    // }
+
+    for (let i = 1; i < 7; ++i) {
       const e = new Entity(this.screen);
+      e.pos = new Point(i * 10, i * 10);
+      e.mass = 3;
+      e.velocity = new Point(0, 0);
       this.entities.push(e);
-      this.qTree.insert(e);
     }
 
-    const e = new Entity(this.screen, 1);
-    e.mass = 30;
-    e.pos = new Point(e.mass, this.screen.y / 2);
-    e.velocity = new Point(10, -0.01);
-
-    this.entities.push(e);
-    this.qTree.insert(e);
+    // const e = new Entity(this.screen);
+    // e.mass = 10;
+    // e.pos = new Point(10, 40);
+    // e.velocity = new Point(4, 0);
+    //
+    // this.entities.push(e);
   }
 
+
   public start(): void {
+    let fps = 30;
+    let requestTime = performance.now();
     const loop = () => {
+      const currentTime = performance.now();
+      fps = Math.round(1000 / (currentTime - requestTime));
+      requestTime = currentTime;
+
       this.ctx.clearRect(0, 0, this.screen.x, this.screen.y);
+      this.ctx.font = "20px Arial";
+      this.ctx.fillStyle = "white";
+      this.ctx.fillText(`FPS: ${fps}`, this.screen.x - 90, this.screen.y);
 
       const size = this.entities.length;
       let i = 0;
+
+      // Lazy way
+      // for (i = 0; i < size; ++i) {
+      //   for (let j = i + 1; j < size; ++j) {
+      //     this.entities[i].collision(this.entities[j]);
+      //   }
+      // }
+
+      // build quad tree way
       let qTree = new QuadTree(new Point(0, 0), this.screen);
-      for (; i < size; ++i) {
-        this.entities[i].update();
+      for (i = 0; i < size; ++i) {
         qTree.insert(this.entities[i]);
       }
+      qTree.physicsUpdate();
+      // console.log(qTree);
+      // console.log(this.qTree..occupants.length, size);
+
+      // update quad tree dynamically way
+      // this.qTree.update();
 
       // this.qTree.update();
-      qTree.physicsUpdate();
+      // qTree.physicsUpdate();
       // this.entities[0].collision(this.entities[1]);
 
+
+      // update entities
+      for (i = 0; i < size; ++i) {
+        this.entities[i].update();
+      }
+
+      // render
       for (i = 0; i < size; ++i) {
         this.entities[i].render(this.ctx);
+        this.entities[i].collided = false; // lazy
       }
 
       qTree.render(this.ctx);

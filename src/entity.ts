@@ -5,22 +5,23 @@ export class Entity {
   screen: Point
   pos: Point
   velocity: Point
-  color: string
-  friction: number
+  collided: boolean
 
-  constructor(screen: Point, friction = 0.998) {
+  constructor(screen: Point) {
     this.screen = screen;
 
     this.mass = Math.random() * 3 + 1;
-    // this.pos = new Point(screen.x * Math.random(), screen.y * Math.random());
     this.pos = new Point(
-      screen.x * 0.375 + screen.x * Math.random() * 0.25,
-      screen.y * 0.375 + screen.y * Math.random() * 0.25
+      screen.x * 0.375 * Math.random(),
+      screen.y * 0.375 * Math.random()
     );
 
-    this.velocity = new Point(0, 0);
-    this.friction = friction;
-    this.color = 'green';
+    this.velocity = new Point(
+      Math.random() * (Math.round(Math.random()) * 2 - 1),
+      Math.random() * (Math.round(Math.random()) * 2 - 1)
+    );
+
+    this.collided = false;
   }
 
   update() {
@@ -39,35 +40,19 @@ export class Entity {
     } else {
       this.pos.y = newY;
     }
-
-    // friction
-    this.velocity.scalarMultiply(this.friction);
   }
 
   collision(other: Entity): void {
     const diff = new Point(other.pos.x - this.pos.x, other.pos.y - this.pos.y);
-    const dist = Math.hypot(diff.x, diff.y);
-    if (dist <= this.mass + other.mass) {
-      this.color = 'red';
-      other.color = 'red';
-
-      const norm = new Point(diff.x / dist, diff.y / dist);
-      const diffV = new Point(this.velocity.x - other.velocity.x, this.velocity.y - other.velocity.y);
-      const speed = diffV.x * norm.x + diffV.y * norm.y;
-      if (speed < 0) {
-        return;
-      }
-
-      const J = (2 * speed) / (this.mass + other.mass);
-      this.velocity.x -= J * other.mass * norm.x;
-      this.velocity.y -= J * other.mass * norm.y;
-      other.velocity.x += J * this.mass * norm.x;
-      other.velocity.x += J * this.mass * norm.y;
+    const dist = Math.pow(diff.x, 2) + Math.pow(diff.y, 2);
+    if (dist <= Math.pow(this.mass + other.mass, 2)) {
+      this.collided = true;
+      other.collided = true;
     }
   }
 
   render(ctx: CanvasRenderingContext2D): void {
-    ctx.fillStyle = this.color;
+    ctx.fillStyle = this.collided ? "red" : "green";
     ctx.beginPath();
     ctx.arc(this.pos.x, this.pos.y, this.mass, 0, Math.PI * 2);
     ctx.fill();
