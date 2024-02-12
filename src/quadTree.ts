@@ -2,67 +2,78 @@ import { EndOfLineState } from "typescript";
 import { Entity } from "./entity";
 import { Point } from "./point";
 
+const MAX_DETPH = 5;
+
 export class QuadTree {
-  children: null | [QuadTree, QuadTree, QuadTree, QuadTree]
+  subTrees: null | [QuadTree, QuadTree, QuadTree, QuadTree]
   occupants: null | Entity[]
   min: Point
   max: Point
+  depth: number
 
-  constructor(min: Point, max: Point) {
-    this.children = null;
+  constructor(min: Point, max: Point, depth: number = 0) {
+    this.subTrees = null;
     this.occupants = [];
 
     this.min = min;
     this.max = max;
+
+    this.depth = depth;
+  }
+
+  private addToSubTrees(entity: Entity) {
+    this.subTrees![0].insert(entity); // sue me!
+    this.subTrees![1].insert(entity);
+    this.subTrees![2].insert(entity);
+    this.subTrees![3].insert(entity);
   }
 
   public insert(entity: Entity) {
-    // This layer is already filled, try insert into subtrees
+    // Entity must be in bounds of the tree
+    if (!this.inBounds(entity)) {
+      return;
+    }
+
+    // This layer had too many entities, insert into subtrees
     if (this.occupants === null) {
-      for (let i = 0; i < 4; ++i) {
-        if (this.children![i].inBounds(entity)) {
-          this.children![i].insert(entity);
-        }
-      }
+      this.addToSubTrees(entity);
       return;
     }
 
-    // Layer is now filled, subdivide
-    if (this.occupants.length === 4) {
-      const midX = (this.min.x + this.max.x) / 2;
-      const midY = (this.min.y + this.max.y) / 2;
-
-      this.children = [
-        new QuadTree(new Point(midX, this.min.y), new Point(this.max.x, midY)), // North-East
-        new QuadTree(new Point(this.min.x, this.min.y), new Point(midX, midY)), // North-West
-        new QuadTree(new Point(midX, midY), new Point(this.max.x, this.max.y)), // South-East
-        new QuadTree(new Point(this.min.x, midY), new Point(midX, this.max.y)), // South-West
-      ];
-
-      for (let occupantId = 0; occupantId < 4; ++occupantId) {
-        const e = this.occupants[occupantId];
-        for (let childID = 0; childID < 4; ++childID) {
-          if (this.children[childID].inBounds(e)) {
-            this.children[childID].insert(e);
-          }
-        }
-      }
-
-      this.occupants = null;
-      this.insert(entity);
-      return;
+    // Layer has space for another entity or max depth of tree found
+    if (this.occupants.length < 4 || this.depth >= MAX_DETPH) {
+      this.occupants.push(entity);
+      return
     }
 
-    // layer not full, push and move on
-    this.occupants.push(entity);
+    // Layer would be overfull with the new entity. Create sub-trees and add 
+    // occupants and new entityt to those sub-trees
+    const newDepth = this.depth + 1;
+    const midX = (this.min.x + this.max.x) / 2;
+    const midY = (this.min.y + this.max.y) / 2;
+
+    this.subTrees = [
+      new QuadTree(new Point(midX, this.min.y), new Point(this.max.x, midY), newDepth), // North-East
+      new QuadTree(new Point(this.min.x, this.min.y), new Point(midX, midY), newDepth), // North-West
+      new QuadTree(new Point(midX, midY), new Point(this.max.x, this.max.y), newDepth), // South-East
+      new QuadTree(new Point(this.min.x, midY), new Point(midX, this.max.y), newDepth), // South-West
+    ];
+
+    this.addToSubTrees(this.occupants[0]); // sue me!!
+    this.addToSubTrees(this.occupants[1]);
+    this.addToSubTrees(this.occupants[2]);
+    this.addToSubTrees(this.occupants[3]);
+    this.addToSubTrees(entity);
+
+    this.occupants = null;
   }
 
   public physicsUpdate(): void {
     if (this.occupants === null) {
-      this.children![0].physicsUpdate(); // sue me
-      this.children![1].physicsUpdate();
-      this.children![2].physicsUpdate();
-      this.children![3].physicsUpdate();
+      this.subTrees![0].physicsUpdate(); // sue me!!!
+      this.subTrees![1].physicsUpdate();
+      this.subTrees![2].physicsUpdate();
+      this.subTrees![3].physicsUpdate();
 
       return;
     }
@@ -111,9 +122,9 @@ export class QuadTree {
     ctx.closePath();
     ctx.stroke();
 
-    if (this.children !== null) {
+    if (this.subTrees !== null) {
       for (let i = 0; i < 4; ++i) {
-        this.children[i].render(ctx);
+        this.subTrees[i].render(ctx);
       }
     }
   }

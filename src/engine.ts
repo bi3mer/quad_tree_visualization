@@ -25,15 +25,15 @@ export class Engine {
     this.qTree = new QuadTree(new Point(0, 0), this.screen);
 
     this.entities = [];
-    // for (let i = 0; i < 100; ++i) {
+    // for (let i = 0; i < 20; ++i) {
     //   const e = new Entity(this.screen);
     //   this.entities.push(e);
     //   // this.qTree.insert(e);
     // }
 
-    for (let i = 1; i < 7; ++i) {
+    for (let i = 1; i < 20; ++i) {
       const e = new Entity(this.screen);
-      e.pos = new Point(i * 10, i * 10);
+      e.pos = new Point(i * 5, i * 5 + 300);
       e.mass = 3;
       e.velocity = new Point(0, 0);
       this.entities.push(e);

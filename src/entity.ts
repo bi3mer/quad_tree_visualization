@@ -10,7 +10,7 @@ export class Entity {
   constructor(screen: Point) {
     this.screen = screen;
 
-    this.mass = Math.random() * 3 + 1;
+    this.mass = Math.random() * 3 + 2;
     this.pos = new Point(
       screen.x * 0.375 * Math.random(),
       screen.y * 0.375 * Math.random()
