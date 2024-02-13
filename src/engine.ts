@@ -67,13 +67,9 @@ export class Engine {
       this.qTree.update();
       this.qTree.physicsUpdate();
 
-      // update entities
+      // update and render entities
       for (i = 0; i < size; ++i) {
         this.entities[i].update();
-      }
-
-      // render
-      for (i = 0; i < size; ++i) {
         this.entities[i].render(this.ctx);
         this.entities[i].collided = false; // lazy
       }
