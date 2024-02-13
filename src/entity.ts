@@ -1,4 +1,5 @@
 import { Point } from "./point";
+import { randomSign } from "./util";
 
 export class Entity {
   mass: number
@@ -17,8 +18,8 @@ export class Entity {
     );
 
     this.velocity = new Point(
-      Math.random() * (Math.round(Math.random()) * 2 - 1),
-      Math.random() * (Math.round(Math.random()) * 2 - 1)
+      Math.max(Math.random() * 2, 0.2) * randomSign(),
+      Math.max(Math.random() * 2, 0.2) * randomSign()
     );
 
     this.collided = false;

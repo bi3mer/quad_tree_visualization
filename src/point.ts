@@ -19,4 +19,12 @@ export class Point {
     this.x *= scalar;
     this.y *= scalar;
   }
+
+  dot(other: Point): number {
+    return this.x * other.x + this.y + other.y;
+  }
+
+  magnitude(): number {
+    return Math.sqrt(this.x * this.x + this.y * this.y);
+  }
 }

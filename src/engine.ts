@@ -25,7 +25,7 @@ export class Engine {
     this.qTree = new QuadTree(new Point(0, 0), this.screen);
 
     this.entities = [];
-    for (let i = 0; i < 3; ++i) {
+    for (let i = 0; i < 10; ++i) {
       const e = new Entity(this.screen);
       this.entities.push(e);
       // this.qTree.insert(e);
