@@ -28,7 +28,7 @@ export class Engine {
     for (let i = 0; i < 10; ++i) {
       const e = new Entity(this.screen);
       this.entities.push(e);
-      // this.qTree.insert(e);
+      this.qTree.insert(e);
     }
   }
 
@@ -49,28 +49,23 @@ export class Engine {
       const size = this.entities.length;
       let i = 0;
 
-      // Lazy way
+      // ----- Lazy way, 0(n^2)
       // for (i = 0; i < size; ++i) {
       //   for (let j = i + 1; j < size; ++j) {
       //     this.entities[i].collision(this.entities[j]);
       //   }
       // }
 
-      // build quad tree way
-      let qTree = new QuadTree(new Point(0, 0), this.screen);
-      for (i = 0; i < size; ++i) {
-        qTree.insert(this.entities[i]);
-      }
-      qTree.physicsUpdate();
-      // console.log(qTree);
-      // console.log(this.qTree..occupants.length, size);
-
-      // update quad tree dynamically way
-      // this.qTree.update();
-
-      // this.qTree.update();
+      //  ----- Rebuild quad tree every frame
+      // let qTree = new QuadTree(new Point(0, 0), this.screen);
+      // for (i = 0; i < size; ++i) {
+      //   qTree.insert(this.entities[i]);
+      // }
       // qTree.physicsUpdate();
-      // this.entities[0].collision(this.entities[1]);
+
+      // ----- Update Update QuadTree every frame dynamically
+      this.qTree.update();
+      this.qTree.physicsUpdate();
 
       // update entities
       for (i = 0; i < size; ++i) {
@@ -83,13 +78,8 @@ export class Engine {
         this.entities[i].collided = false; // lazy
       }
 
-      if (first) {
-        first = false;
-        console.log(qTree);
-      }
-
-      qTree.render(this.ctx);
-      // this.qTree.render(this.ctx);
+      // qTree.render(this.ctx);
+      this.qTree.render(this.ctx);
 
       window.requestAnimationFrame(loop);
     }

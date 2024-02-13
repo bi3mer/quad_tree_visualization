@@ -98,18 +98,44 @@ export class QuadTree {
     }
   }
 
-  private inBounds(entity: Entity): boolean {
-    const cx = entity.pos.x;
-    const cy = entity.pos.y;
-    const r = entity.mass;
+  public update(): void {
+    // 1. Find all entities that no longer fit in the tree and insert them 
+    // into the tree, trying at each layer of the tree.
+    const leftTree = this._update();
+    const size = leftTree.length;
+    for (let i = 0; i < size; ++i) {
+      this.insert(leftTree[i]);
+    }
 
-    const dx = cx - clamp(cx, this.min.x, this.max.x);
-    const dy = cy - clamp(cy, this.min.y, this.max.y);
-
-    return dx * dx + dy * dy <= r * r;
+    // 2. Clean up the tree so that we don't leave behind empty trees
   }
 
-  public render(ctx: CanvasRenderingContext2D) {
+  private _update(): Entity[] {
+    let leftTree: Entity[] = [];
+
+    if (this.occupants === null) {
+      return leftTree
+        .concat(this.subTrees![0]._update())
+        .concat(this.subTrees![1]._update())
+        .concat(this.subTrees![2]._update())
+        .concat(this.subTrees![3]._update()); // felt very rust-like
+    }
+
+    for (let i = 0; i < this.occupants.length; ++i) {
+      const e = this.occupants[i];
+      if (!this.inBounds(e)) {
+        leftTree.push(e);
+        this.occupants.splice(i, 1);
+        --i;
+      }
+    }
+
+    // if (this.occupants.lengthj)
+
+    return leftTree;
+  }
+
+  public render(ctx: CanvasRenderingContext2D): void {
     ctx.beginPath(); // rect was super slow for some reason
     ctx.moveTo(this.min.x, this.min.y);
     ctx.lineTo(this.max.x, this.min.y);
@@ -124,5 +150,16 @@ export class QuadTree {
         this.subTrees[i].render(ctx);
       }
     }
+  }
+
+  private inBounds(entity: Entity): boolean {
+    const cx = entity.pos.x;
+    const cy = entity.pos.y;
+    const r = entity.mass;
+
+    const dx = cx - clamp(cx, this.min.x, this.max.x);
+    const dy = cy - clamp(cy, this.min.y, this.max.y);
+
+    return dx * dx + dy * dy <= r * r;
   }
 }
