@@ -10,8 +10,8 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "build": "bun build src/index.ts --outfile dist/bundle.js",
-    "watch": "bun build src/index.ts --outfile dist/bundle.js --watch",
-    "prod": "bun build src/index.ts --outfile dist/bundle.js --minify"
+    "build": "bun build src/index.ts --outfile dist/index.js",
+    "watch": "bun build src/index.ts --outfile dist/index.js --watch",
+    "prod": "bun build src/index.ts --outfile dist/index.js --minify --minify-whitespace --minify-identifiers --minify-syntax"
   }
 }

@@ -53,7 +53,12 @@ export class QuadTree {
 
     // Layer has space for another entity or max depth of the quad tree reached
     if (this.occupants.length < 4 || this.depth >= MAX_DETPH) {
-      this.occupants.push(entity);
+      // Update to quad tree can cause entity spliting which causes multiple 
+      // referecnes of the same entitty to polute the tree, so we check before 
+      // adding
+      if (!this.occupants.includes(entity)) {
+        this.occupants.push(entity);
+      }
       return
     }
 
@@ -162,14 +167,17 @@ export class QuadTree {
       occupants += this.subTrees[i].occupants!.length;
     }
 
+    // We can deconstruct the subtrees 
     if (occupants <= 4) {
-      // We can deconstruct the trees below 
       this.occupants = [];
       for (i = 0; i < 4; ++i) {
         const occupants = this.subTrees[i].occupants!;
         const size = occupants.length;
+
         for (let jj = 0; jj < size; ++jj) {
-          this.occupants.push(occupants[jj]);
+          if (!this.occupants.includes(occupants[jj])) { // prevent reference pollution
+            this.occupants.push(occupants[jj]);
+          }
         }
       }
 
@@ -178,6 +186,7 @@ export class QuadTree {
   }
 
   private addToSubTrees(entity: Entity) {
+    // TODO: delete all this inbounds nonsense
     let inBounds = false;
     for (let i = 0; i < 4; ++i) {
       inBounds ||= this.subTrees![i].inBounds(entity);
