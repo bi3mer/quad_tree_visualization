@@ -26,21 +26,37 @@ export class Entity {
   }
 
   update() {
-    const newX = this.pos.x + this.velocity.x;
-    if (newX < this.mass || this.pos.x > this.screen.x - this.mass) {
-      this.velocity.x = -this.velocity.x;
-      this.pos.x += this.velocity.x;
-    } else {
-      this.pos.x = newX;
+    if (this.pos.x > this.screen.x - this.mass) {
+      this.pos.x = this.screen.x - this.mass;
+      this.velocity.x *= -1;
+    } else if (this.pos.x < this.mass) {
+      this.pos.x = this.mass;
+      this.velocity.x *= -1;
+    } else if (this.pos.y > this.screen.y - this.mass) {
+      this.pos.y = this.screen.y - this.mass;
+      this.velocity.y *= -1;
+    } else if (this.pos.y < this.mass) {
+      this.pos.y = this.mass;
+      this.velocity.y *= -1;
     }
 
-    const newY = this.pos.y + this.velocity.y;
-    if (newY < this.mass || this.pos.y > this.screen.y - this.mass) {
-      this.velocity.y = -this.velocity.y;
-      this.pos.y += this.velocity.y;
-    } else {
-      this.pos.y = newY;
-    }
+    this.pos.x += this.velocity.x;
+    this.pos.y += this.velocity.y;
+    // const newX = this.pos.x + this.velocity.x;
+    // if (newX < this.mass || this.pos.x > this.screen.x - this.mass) {
+    //   this.velocity.x = -this.velocity.x;
+    //   this.pos.x += this.velocity.x;
+    // } else {
+    //   this.pos.x = newX;
+    // }
+    //
+    // const newY = this.pos.y + this.velocity.y;
+    // if (newY < this.mass || this.pos.y > this.screen.y - this.mass) {
+    //   this.velocity.y = -this.velocity.y;
+    //   this.pos.y += this.velocity.y;
+    // } else {
+    //   this.pos.y = newY;
+    // }
   }
 
   collision(other: Entity): void {
@@ -48,7 +64,17 @@ export class Entity {
     const dist = Math.pow(diff.x, 2) + Math.pow(diff.y, 2);
     if (dist <= Math.pow(this.mass + other.mass, 2)) {
       this.collided = true;
-      other.collided = true;
+
+      // slope of line between the two circles
+      const m = diff.y / diff.x;
+
+      // length of intersection
+      const l = (this.mass + other.mass) - dist;
+
+      // update positions
+      const u = 0.5 * l * m;
+      this.pos.scalarAdd(u);
+      other.pos.scalarAdd(-u);
     }
   }
 

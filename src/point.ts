@@ -15,6 +15,11 @@ export class Point {
     return new Point(this.x + other.x, this.y + other.y);
   }
 
+  scalarAdd(n: number): void {
+    this.x += n;
+    this.x += n;
+  }
+
   scalarMultiply(scalar: number): void {
     this.x *= scalar;
     this.y *= scalar;
