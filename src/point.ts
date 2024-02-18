@@ -7,6 +7,11 @@ export class Point {
     this.y = y;
   }
 
+  zero(): void {
+    this.x = 0;
+    this.y = 0;
+  }
+
   equals(other: Point): boolean {
     return this.x == other.x && this.y == other.y;
   }
@@ -15,9 +20,18 @@ export class Point {
     return new Point(this.x + other.x, this.y + other.y);
   }
 
+  subtract(other: Point): Point {
+    return new Point(this.x - other.x, this.y - other.y);
+  }
+
   scalarAdd(n: number): void {
     this.x += n;
-    this.x += n;
+    this.y += n;
+  }
+
+  scalarSubtract(n: number): void {
+    this.x -= n;
+    this.y -= n;
   }
 
   scalarMultiply(scalar: number): void {

@@ -80,11 +80,11 @@ export class QuadTree {
       return;
     }
 
-    const size = this.occupants!.length;
+    const size = this.occupants.length;
     for (let i = 0; i < size; ++i) {
-      const e = this.occupants![i];
+      const e = this.occupants[i];
       for (let jj = i + 1; jj < size; ++jj) {
-        e.collision(this.occupants![jj]);
+        e.collision(this.occupants[jj]);
       }
     }
   }

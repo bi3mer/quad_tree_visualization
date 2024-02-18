@@ -25,11 +25,23 @@ export class Engine {
     this.qTree = new QuadTree(new Point(0, 0), this.screen);
 
     this.entities = [];
-    for (let i = 0; i < 10; ++i) {
-      const e = new Entity(this.screen);
-      this.entities.push(e);
-      this.qTree.insert(e);
-    }
+    // for (let i = 0; i < 10; ++i) {
+    //   const e = new Entity(this.screen);
+    //   this.entities.push(e);
+    //   this.qTree.insert(e);
+    // }
+    this.entities.push(new Entity(this.screen));
+    this.entities.push(new Entity(this.screen));
+
+    this.entities[0].mass = 10;
+    this.entities[0].pos.x = 10;
+    this.entities[0].pos.y = this.screen.y / 2;
+    this.entities[0].velocity = new Point(2, 0);
+
+    this.entities[1].mass = 2;
+    this.entities[1].pos.x = this.screen.x - 10;
+    this.entities[1].pos.y = this.screen.y / 2;
+    this.entities[1].velocity = new Point(-2, 0);
   }
 
   public start(): void {
@@ -50,11 +62,11 @@ export class Engine {
       let i = 0;
 
       // ----- Lazy way, 0(n^2)
-      // for (i = 0; i < size; ++i) {
-      //   for (let j = i + 1; j < size; ++j) {
-      //     this.entities[i].collision(this.entities[j]);
-      //   }
-      // }
+      for (i = 0; i < size; ++i) {
+        for (let j = i + 1; j < size; ++j) {
+          this.entities[i].collision(this.entities[j]);
+        }
+      }
 
       //  ----- Rebuild quad tree every frame
       // let qTree = new QuadTree(new Point(0, 0), this.screen);
@@ -64,8 +76,8 @@ export class Engine {
       // qTree.physicsUpdate();
 
       // ----- Update Update QuadTree every frame dynamically
-      this.qTree.update();
-      this.qTree.physicsUpdate();
+      // this.qTree.update();
+      // this.qTree.physicsUpdate();
 
       // update and render entities
       for (i = 0; i < size; ++i) {
